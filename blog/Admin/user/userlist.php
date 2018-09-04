@@ -3,12 +3,19 @@
 require '../init.php';
 require LOCALPATH . '/Public/header.php';
 require LOCALPATH . '/Public/nav.php';
-    // 先查所有的用户数据
+    // 先查用户数据
     // 1.准备SQL语句
-$sql = 'select * from ' . PIX . 'adminuser';
+$q = $_POST['q'];
+    //echo $q;
+if (!empty($q)) {
+    $sql = "select * from " . PIX . "adminuser where name like '%$q%' ";
+} else {
+    $sql = 'select * from ' . PIX . 'adminuser';
+}
+
     // 2.发送执行
 $userlist = query($sql);
-    //var_dump($userlist);
+//var_dump($userlist);
     // 准备格式化数据
 $status = array('超级管理员', '普通管理员', '普通会员');
 ?>
@@ -16,8 +23,8 @@ $status = array('超级管理员', '普通管理员', '普通会员');
     <div class="row-fluid" id="main">
         <div class="span8 offset2">
         <!-- 小作业，自行完成搜索 -->
-            <form class="form-search fr" action="./action.php?handler=search" method="post">
-                <input type="text" name="name" class="input-medium" placeholder="Name">
+            <form class="form-search fr" action="./userlist.php" method="post">
+                <input type="text" name="q" class="input-medium" placeholder="账户名">
                 <button type="submit" class="btn">搜索</button>
             </form>
 
