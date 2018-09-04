@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css">
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: "微软雅黑";
+            overflow-y: hidden;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+        #wrap {
+            width: 200px;
+            background: #B8FFB8;
+            opacity: 0.85;
+            border: 1px solid #8fff27;
+            border-top:0;
+        }
+        #top {
+            width: 100%;
+            height: 35px;
+            box-sizing: border-box;
+            padding-right: 60px;
+            background: #56A36C;
+            line-height: 35px;
+            text-align: center;
+            color:#ffb5a1;
+        }
+        ul {
+            list-style: none;
+            margin: 20px 10px;
+            padding: 0;
+        }
+        .user-list {
+            white-space: nowrap;
+            height: 770px;
+            overflow-x: auto;
+        }
+        .user-list > li {
+            height: 30px;
+            margin-bottom: 10px;
+            display:flex;
+            align-items: center;
+            /*justify-content: center;*/
+        }
+        .user-list > li > a{
+            width: 75%;
+            height: 100%;
+            display:flex;
+            align-items: center;
+            /*justify-content: center;*/
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .user-list > li>a span {
+            margin-left: 12px;
+            font-size:14px;
+            color:blueviolet;
+        }
+        .user-list > li > a:hover span{
+            color: rgba(255, 12, 0, 0.93);
+        }
+        .user-list > li .state {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            -webkit-border-radius: 50%;
+            -moz-border-radius: 50%;
+            border-radius: 50%;
+        }
+        .user-list > li #online {
+            background-color: #0f0;
+        }
+        .user-list > li #offline {
+            background-color: #f00;
+        }
+        #user-num {
+            display: flex;
+            height: 30px;
+            line-height: 30px;
+        }
+        #user-num>div {
+            display: inline-block;
+            flex: 1;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #b0b0b0;
+            border-left:0;
+            border-right:0;
+            cursor:pointer;
+            background-color: #9FF048;
+            color:#2E68AA;
+            font-size: 18px;
+        }
+        #user-num>div:hover {
+            color: #5d40e0;
+        }
+        #user-num>div:first-child {
+            border-right: 0;
+            border-left: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="wrap">
+    <div id="top">
+        单击与好友聊天
+    </div>
+    <div id="user-num">
+        <div id="friends" value="0" style="display: none">好友</div><!--功能预留-->
+        <div id="group" value="1" >群聊</div>
+    </div>
+    <ul class="user-list">
+    </ul>
+</div>
+</body>
+
+<script src="../js/jquery-1.11.3.min.js"></script>
+<script>
+    //获取登录页面设置的cookie值
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=");
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1;
+                c_end = document.cookie.indexOf(";", c_start);
+                if (c_end == -1) {
+                    c_end = document.cookie.length;
+                }
+                return unescape(document.cookie.substring(c_start, c_end));
+            }
+        }
+
+        return "";
+    }
+    var currentname = getCookie('currentname');
+    console.log(currentname);
+    /*判断是群聊还是好友聊天,目前只针对群聊
+    $('#friends').click(function(){
+        getinfo(this);
+        $(this).css('background-color','#acc2a5');
+        $('#group').css('background-color','#fff');
+
+    })*/
+    $('#group').click(function(){
+        // $('#friends').css('background-color','#fff');
+        var self = this;
+        $(self).css('background-color','#9FF048');
+        var str = '<h3><span id="user">正在群聊</span></h3>';
+        $(window.parent.frames["content"].document.getElementById('title')).html(str);
+    })
+    //定时器，每隔300毫秒从数据库中请求数据，刷新群聊列表
+    setInterval(function(){
+        getinfo($('#group'));
+    },100);
+
+    //定义变量，接受点击好友列表时的name值，传递给content.html的.user
+    var friendName = null;
+    //好友还是群聊
+    function getinfo(obj){
+        $.ajax({
+            url: '../framephp/list.php',
+            type: 'get',
+            dataType:"json",
+            data:{
+                    'flag': 1
+                    // 'flag': obj.getAttribute('value')
+            },
+            success:function(msg){
+                // console.log('数据返回成功');
+                console.log(msg);
+                if(!msg){
+                    $('.user-list').html() ;
+                }
+                else {
+                    var text = '';
+                    for(var i = 0;i<msg.length;i++){
+                        if((msg[i].username) == getCookie('currentname')){
+                           console.log('msg[i].username='+msg[i].username) ;
+                           console.log('currentname='+currentname) ;
+                            continue;
+                        }
+                        text += '<li><a href="javascript:;" name="';
+                        text += msg[i].username+'"><img src=';
+                        text += msg[i].profile;
+                        text += ' width="30px" height="30px"';
+                        text += '/><span>';
+                        text += msg[i].username;
+                        text += '</span> </a>';
+                        if(msg[i].state==1){
+                            text +='<span class="state" id="online"><span/></li>';
+                        }else {
+                            text +='<span class="state" id="offline"><span/></li>';
+                        }
+                    }
+                    $('.user-list').html(text) ;
+                    $('.user-list a').click(function(){
+                        //console.log($(this).attr('name'));
+                        friendName = $(this).attr('name');
+                        var str2 = '<h3>正在与好友<span id="user">'+friendName+'</span>聊天</h3>';
+                        //console.log($(window.parent.frames["content"].document.getElementById('talkwidth')).html());
+                        $(window.parent.frames["content"].document.getElementById('title')).html(str2);
+                    })
+                }
+            },
+            error:function(msg){
+                $('.user-list').html('数据请求错误') ;
+            }
+        })
+    }
+</script>
+</html>

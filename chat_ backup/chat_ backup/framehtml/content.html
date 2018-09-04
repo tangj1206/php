@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css">
+        body,
+        html {
+            overflow-x: hidden;
+            overflow-y: hidden;
+            margin: 0;
+            padding: 0;
+            font-family: "微软雅黑";
+        }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        h3 {
+            height: 35px;
+            margin: 0;
+            padding-left: 10px;
+            background: #E9E9E9;
+            line-height: 35px;
+        }
+
+        #wrap {
+            width: 600px;
+            height: 525px;
+        }
+        #title {
+            width: 100%;
+            position: fixed;
+            top: 0;
+            height: 30px;
+        }
+        #title h3{
+            background-color: #9FF048;
+        }
+
+        #title span {
+            color: #ff6d54;
+        }
+
+        ul {
+            margin: 35px 0px;
+            padding: 0;
+        }
+
+        li {
+            list-style: none;
+            float: left;
+        }
+
+        .content-left {
+            /*height: 60px;*/
+        }
+
+        .content-left span, .content-right span {
+            font-size: 14px;
+        }
+
+        .content-right span {
+            float: right;
+        }
+
+        .content-left p, .content-right p {
+            background: #abcdef;
+            padding: 5px;
+            border-radius: 5px;
+            max-width: 200px;
+        }
+
+        .content-right p {
+            margin-top: 20px;
+        }
+
+        .content > ul > li {
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        .content-left li:first-child {
+            max-width: 50px;
+            min-width: 20px;
+        }
+
+        .content-left li:nth-child(2) {
+            margin-top: -5px;
+            margin-left: 20px;
+        }
+
+        .content-right {
+            float: right;
+            /*height: 60px;*/
+        }
+
+        .content-right li {
+            float: right;
+        }
+
+        .content-right li:first-child {
+            float: right;
+            max-width: 50px;
+            min-width: 20px;
+        }
+
+        .content-right li:nth-child(2) {
+            float: right;
+            margin-top: -5px;
+            margin-right: 20px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="wrap">
+    <div id="title">
+        <h3><span id="user">正在群聊</span></h3>
+    </div>
+    <div class="content">
+        <ul style="overflow-x:auto; height: 390px;padding: 0px 10px;" id="msg">
+        </ul>
+    </div>
+</div>
+</body>
+</html>
+<script src="../js/jquery-1.11.3.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    $('#msg')[0].scrollTop = $('#msg')[0].scrollHeight;
+    setInterval(function () {
+        var username = $('#user').html();
+        $.ajax({
+            type: "get",
+            url: "../framephp/content.php",
+            data: {
+                "friend": username
+            },
+            dataType: "json",
+            success: function (msg) {
+                if (!msg) {
+                    $('#msg').html('<span>创建数据表成功!</span>');
+                }
+                else {
+                    console.log(msg);
+                    var nr = '';
+                    for (var i = 0; i < msg.length; i++) {
+                        nr += '<li>';
+                        nr += '<ul ';
+                        if (msg[i].is_mine) {
+                            nr += 'class="content-right"';
+                            nr += '>';
+                            nr += '<li><img src="' + msg[i].profile + '" alt="" width="50px" height="50px"/></li>';
+                            nr += '<li><span>' + msg[i].systime + '</span><span style="margin-right:15px;">' + msg[i].username + '</span><p>' + msg[i].content + '</p></li>';
+                            nr += '</ul>';
+                            nr += '</li>';
+                        } else {
+                            nr += 'class="content-left"';
+                            nr += '>';
+                            nr += '<li><img src="' + msg[i].profile + '" alt="" width="50px" height="50px"/></li>';
+                            nr += '<li><span style="margin-right:15px;">' + msg[i].username + '</span><span>' + msg[i].systime + '</span><p>' + msg[i].content + '</p></li>';
+                            nr += '</ul>';
+                            nr += '</li>';
+                        }
+
+                    }
+                    $('#msg').html(nr);
+                }
+            },
+            error: function (msg) {
+                $('#msg').html('<span>数据请求错误，请请稍后重试!</span>');
+                console.log(msg);
+            }
+        });
+    }, 100);
+    var timer = setInterval(function () {
+        $("#msg").animate({
+            scrollTop: $('#msg')[0].scrollHeight
+        }, 100);
+    }, 100);
+    $("#msg").mouseover(function () {
+        clearInterval(timer);
+    })
+    $("#msg").mouseleave(function () {
+        timer = setInterval(function () {
+            $("#msg").animate({
+                scrollTop: $('#msg')[0].scrollHeight
+            }, 100);
+        }, 100);
+    })
+</script>
