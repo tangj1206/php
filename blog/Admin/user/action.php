@@ -87,13 +87,13 @@ switch ($a) {
            // echo '用户在更新的时候，没有重新输入密码，那么我们拿数据库的密码：' . $pass;
         } else {
             $pass = md5($_POST['password']);
-            echo '用户在更新的时候，有输入密码，那么我们取用户输入的密码：' . $pass;
+            //echo '用户在更新的时候，有输入密码，那么我们取用户输入的密码：' . $pass;
         }
 
         //用户是否上传图片，如果没上传，我们就取隐藏域传过来的图片名
         if ($_FILES['myfile']['error'] == 0) {
             //文件上传成功
-            echo '用户有上传文件';
+            //echo '用户有上传文件';
             //准备存储图片的目录
             $savePath = '../Public/icon/';
 
@@ -107,20 +107,51 @@ switch ($a) {
             // 判断上传的之后的状态，如果成功的话，status值为TRUE
             if ($upload['status']) {
                 //如果有上传成功 就返回上传的文件名
-                $picPath = $upload['name'];
+                $picPath = $upload['imageName'];
                 $picPath = $savePath . $picPath;
 
                 //得到图片 进行缩放
                 $zoomSmallName = zoom($picPath, $savePath, 100, 100);
 
                 // 把上传了的大图给删除了
-                unlink();
+                unlink($picPath);
                 $icon = $zoomSmallName;
+
+                //如果之前的头像存在 删除掉
+                $oldPicPath = $_POST['icon'];
+                $oldPicPath = $savePath . $oldPicPath;
+                if (file_exists($oldPicPath)) {
+                    unlink($oldPicPath);
+                }
             }
+        } else {
+            //echo '没有上传头像';
+            $icon = $_POST['icon'];
         }
 
+        //接受用户输入的数据
+        // 永远不要相信用户
+        $name = htmlspecialchars($_POST['name']);
+        $truename = htmlspecialchars($_POST['truename']);
+        $email = htmlspecialchars($_POST['email']);
+        $status = $_POST['status'];
+        $addtime = time();
 
+        // 2.准备SQL语句
+        $sql = 'update ' . PIX . "adminuser set `name` = '{$name}',`password`='{$pass}',`truename`='{$truename}',`email`='{$email}',`status`='{$status}',`icon`='{$icon}',`addtime`='{$addtime}' where id = {$id}";
+        // echo $sql;
+        //3.执行语句,返回id
+        $insertId = execu($sql);
+        //var_dump($insertId);
 
+        if ($insertId) {
+            echo 'ok...编辑管理员成功啦，3秒以后跳转';
+            echo '<meta http-equiv="refresh" content="2;url=./userlist.php">';
+        } else {
+            echo '<script>alert("编辑失败，请重新输入后再试");window.history.go(-1);</script>';
+				exit;
+        }
+        
         break;
     default:
 			# code...
